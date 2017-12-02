@@ -100,7 +100,6 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
     DatabaseReference mPersonSeen = mDatabase.child("status").child("inRange");
     DatabaseReference mAttendanceList = mDatabase.child("tasks").child(FIREBASE_ADMIN_ID);
-    DatabaseReference mEnteredList = mDatabase.child("in_event").child(FIREBASE_ADMIN_ID);
     private TextToSpeech mTextToSpeechObj;
     private User mUser;
     private ConstraintLayout mWaitingBox;
@@ -547,23 +546,30 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                     String speech = "Recognized! Welcome " + mUser.getFirst_name();
                     mTextToSpeechObj.speak(speech, TextToSpeech.QUEUE_ADD, null, "user_entered");
 
+                    if(!(boolean) dataSnapshot.child("completed").getValue()){
+                        mAttendanceList.child(candidate).child("completed").setValue(true);
+                    }else{
+                        speech = "Recognized! But user has already entered!";
+                        mTextToSpeechObj.speak(speech, TextToSpeech.QUEUE_ADD, null, "user_inside");
+                        Log.i(TAG, "User inside already");
+                    }
 
-                    mAttendanceList.child(candidate).removeValue();
+//                    mAttendanceList.child(candidate).removeValue();
+//
+//                    Map<String, Object> childUpdates = new HashMap<>();
+//                    Map<String, Object> userValues = new HashMap<>();
+//                    userValues.put("first_name", mUser.getFirst_name());
+//                    userValues.put("title", mUser.getTitle());
 
-                    Map<String, Object> childUpdates = new HashMap<>();
-                    Map<String, Object> userValues = new HashMap<>();
-                    userValues.put("first_name", mUser.getFirst_name());
-                    userValues.put("title", mUser.getTitle());
+//                    childUpdates.put("/" + mUser.getKey(), userValues);
 
-                    childUpdates.put("/" + mUser.getKey(), userValues);
-
-                    mEnteredList.updateChildren(childUpdates);
+//                    mEnteredList.updateChildren(childUpdates);
 
                     Log.i(TAG, " NAME: " + mUser.getFirst_name() + " KEY: " + mUser.getKey());
                 }else{
-                    String speech = "Recognized! But user has already entered!";
-                    mTextToSpeechObj.speak(speech, TextToSpeech.QUEUE_ADD, null, "user_inside");
-                    Log.i(TAG, "User inside already");
+                    String speech = "User not registered for event!";
+                    mTextToSpeechObj.speak(speech, TextToSpeech.QUEUE_ADD, null, "not_registered");
+                    Log.i(TAG, "User not registered");
                 }
             }
 
