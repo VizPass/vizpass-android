@@ -146,6 +146,8 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if((boolean) dataSnapshot.getValue()){
+                    startCameraSource();
+//                    mTextToSpeechObj.speak("Please look at the camera to authenticate.", TextToSpeech.QUEUE_ADD, null, "approach_cam");
                     Log.i(TAG, "TURNING CAMERA ON");
                     startCameraSource();
                 }
@@ -543,13 +545,14 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                             dataSnapshot.child("title").getValue().toString());
 
 
-                    String speech = "Recognized! Welcome " + mUser.getFirst_name();
-                    mTextToSpeechObj.speak(speech, TextToSpeech.QUEUE_ADD, null, "user_entered");
+
 
                     if(!(boolean) dataSnapshot.child("completed").getValue()){
                         mAttendanceList.child(candidate).child("completed").setValue(true);
+                        String speech = "Recognized! Welcome " + mUser.getFirst_name();
+                        mTextToSpeechObj.speak(speech, TextToSpeech.QUEUE_ADD, null, "user_entered");
                     }else{
-                        speech = "Recognized! But user has already entered!";
+                        String speech = "Recognized! But user has already entered!";
                         mTextToSpeechObj.speak(speech, TextToSpeech.QUEUE_ADD, null, "user_inside");
                         Log.i(TAG, "User inside already");
                     }
