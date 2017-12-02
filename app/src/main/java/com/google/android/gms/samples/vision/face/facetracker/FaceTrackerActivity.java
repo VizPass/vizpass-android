@@ -16,6 +16,8 @@
 package com.google.android.gms.samples.vision.face.facetracker;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -33,6 +35,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -102,6 +106,9 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private ConstraintLayout mWaitingBox;
 
 
+    private TextView mMoveCloserText;
+
+
     /**
      * Initializes the UI and initiates the creation of a face detector.
      */
@@ -115,7 +122,10 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
+
+
         mWaitingBox = (ConstraintLayout) findViewById(R.id.waiting_box);
+        mMoveCloserText = (TextView) findViewById(R.id.move_closer_text);
 
         // Check for the camera permission before accessing the camera.  If the
         // permission is not granted yet, request permission.
@@ -339,6 +349,8 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         if (mCameraSource != null) {
             try {
                 mPreview.start(mCameraSource, mGraphicOverlay);
+                mMoveCloserText.setText("Please move closer to the camera.");
+                mMoveCloserText.setVisibility(View.VISIBLE);
                 mWaitingBox.setVisibility(View.INVISIBLE);
                 mAllowImage = true;
 
@@ -430,6 +442,12 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private void snapImageAndRecognize() {
         mRecognitionAttempts++;
         mTextToSpeechObj.speak("Recognizing", TextToSpeech.QUEUE_ADD, null, "recognizing");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mMoveCloserText.setText("Recognizing...");
+            }
+        });
 
         mCameraSource.takePicture(new CameraSource.ShutterCallback() {
             @Override
@@ -473,6 +491,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                                             String candidate = candidateObject.getString("subject_id");
 
                                             userEnters(candidate);
+
                                             mPersonSeen.setValue(false);
                                             initWaitListener();
 
@@ -484,6 +503,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                                                     @Override
                                                     public void run() {
                                                         mAllowImage = true;
+                                                        mMoveCloserText.setText("Please move closer to the camera.");
                                                     }
                                                 }, 3000);
                                             }else{
@@ -506,6 +526,13 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private void userEnters(final String candidate) {
         Log.i(TAG, "USER ENTERED");
 
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mMoveCloserText.setText("Recognized!");
+            }
+        });
+
         mAttendanceList.child(candidate).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -520,6 +547,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                     String speech = "Recognized! Welcome " + mUser.getFirst_name();
                     mTextToSpeechObj.speak(speech, TextToSpeech.QUEUE_ADD, null, "user_entered");
 
+
                     mAttendanceList.child(candidate).removeValue();
 
                     Map<String, Object> childUpdates = new HashMap<>();
@@ -533,7 +561,9 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
                     Log.i(TAG, " NAME: " + mUser.getFirst_name() + " KEY: " + mUser.getKey());
                 }else{
-                   Log.i(TAG, "User has already entered ??");
+                    String speech = "Recognized! But user has already entered!";
+                    mTextToSpeechObj.speak(speech, TextToSpeech.QUEUE_ADD, null, "user_inside");
+                    Log.i(TAG, "User inside already");
                 }
             }
 
