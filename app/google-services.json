@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "315469818535",
+    "firebase_url": "https://viz-pass.firebaseio.com",
+    "project_id": "viz-pass",
+    "storage_bucket": "viz-pass.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:315469818535:android:7feffa5451d74ace",
+        "android_client_info": {
+          "package_name": "com.jonahchin.vizpass"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "315469818535-9r6u6k293dm3k3eru4bqr0c4sclohkc3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jonahchin.vizpass",
+            "certificate_hash": "0045499bc175732417f74fbfc4a5d08627fe1433"
+          }
+        },
+        {
+          "client_id": "315469818535-tprbfe0s8003rmh2eckf57ockjt3jqr8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0R7YhFkhvwW54CvfkiKc04URAXKug2tE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "315469818535-tprbfe0s8003rmh2eckf57ockjt3jqr8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
