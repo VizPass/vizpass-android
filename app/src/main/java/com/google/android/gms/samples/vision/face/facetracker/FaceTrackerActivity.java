@@ -26,6 +26,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -57,7 +58,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Activity for the face tracker app.  This app detects faces with the rear facing camera, and draws
@@ -79,7 +82,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private static final int RC_HANDLE_CAMERA_PERM = 2;
 
     // Camera trigger options
-    public static final float FACE_PROXIMITY_TRIGGER = 200f;
+    public static final float FACE_PROXIMITY_TRIGGER = 350f;
     private boolean mAllowImage;
 
     //KAIROS Variables
@@ -96,6 +99,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     DatabaseReference mEnteredList = mDatabase.child("in_event").child(FIREBASE_ADMIN_ID);
     private TextToSpeech mTextToSpeechObj;
     private User mUser;
+    private ConstraintLayout mWaitingBox;
 
 
     /**
@@ -105,12 +109,13 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
-        setContentView(R.layout.main);
+        setContentView(R.layout.main_constraint);
 
         initializeServices();
 
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
+        mWaitingBox = (ConstraintLayout) findViewById(R.id.waiting_box);
 
         // Check for the camera permission before accessing the camera.  If the
         // permission is not granted yet, request permission.
@@ -132,6 +137,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if((boolean) dataSnapshot.getValue()){
+                    Log.i(TAG, "TURNING CAMERA ON");
                     startCameraSource();
                 }
             }
@@ -189,6 +195,8 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     }
 
     private void stopCamera() {
+        Log.i(TAG, "TURNING CAMERA OFF");
+        mWaitingBox.setVisibility(View.VISIBLE);
         mPreview.stop();
         mAllowImage = false;
     }
@@ -223,7 +231,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
         mCameraSource = new CameraSource.Builder(context, detector)
                 .setRequestedPreviewSize(640, 480)
-                .setFacing(CameraSource.CAMERA_FACING_BACK)
+                .setFacing(CameraSource.CAMERA_FACING_FRONT)
                 .setRequestedFps(30.0f)
                 .build();
     }
@@ -331,6 +339,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         if (mCameraSource != null) {
             try {
                 mPreview.start(mCameraSource, mGraphicOverlay);
+                mWaitingBox.setVisibility(View.INVISIBLE);
                 mAllowImage = true;
 
             } catch (IOException e) {
@@ -384,6 +393,8 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         public void onUpdate(FaceDetector.Detections<Face> detectionResults, Face face) {
             mOverlay.add(mFaceGraphic);
             mFaceGraphic.updateFace(face);
+
+            //Log.i(TAG, "width: "+face.getWidth());
 
             if(face.getWidth() >= FACE_PROXIMITY_TRIGGER){
 
@@ -493,21 +504,36 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     }
 
     private void userEnters(final String candidate) {
+        Log.i(TAG, "USER ENTERED");
 
         mAttendanceList.child(candidate).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if(dataSnapshot.exists()){
-                    mUser = new User(dataSnapshot.child("name").getValue().toString(),
-                            dataSnapshot.getKey().toString(),
-                            (boolean) dataSnapshot.child("in_event").getValue());
-                    String speech = "Recognized! Welcome " + mUser.getName();
-                    if(!mUser.isInEvent()){
-                        mAttendanceList.child(candidate).child("in_event").setValue(true);
-                        mTextToSpeechObj.speak(speech, TextToSpeech.QUEUE_ADD, null, "user_entered");
-                    }
 
-                    Log.e(TAG, " NAME: " + mUser.getName() + " KEY: " + mUser.getKey());
+                if(dataSnapshot.exists()){
+
+                    mUser = new User(dataSnapshot.child("first_name").getValue().toString(),
+                            dataSnapshot.getKey().toString(),
+                            dataSnapshot.child("title").getValue().toString());
+
+
+                    String speech = "Recognized! Welcome " + mUser.getFirst_name();
+                    mTextToSpeechObj.speak(speech, TextToSpeech.QUEUE_ADD, null, "user_entered");
+
+                    mAttendanceList.child(candidate).removeValue();
+
+                    Map<String, Object> childUpdates = new HashMap<>();
+                    Map<String, Object> userValues = new HashMap<>();
+                    userValues.put("first_name", mUser.getFirst_name());
+                    userValues.put("title", mUser.getTitle());
+
+                    childUpdates.put("/" + mUser.getKey(), userValues);
+
+                    mEnteredList.updateChildren(childUpdates);
+
+                    Log.i(TAG, " NAME: " + mUser.getFirst_name() + " KEY: " + mUser.getKey());
+                }else{
+                   Log.i(TAG, "User has already entered ??");
                 }
             }
 

@@ -5,25 +5,25 @@ package com.google.android.gms.samples.vision.face.facetracker;
  */
 
 public class User {
-    private String name;
+    private String first_name;
     private String key;
-    private boolean inEvent;
+    private String title;
 
-    public User(String name, String key, boolean inEvent) {
-        this.name = name;
+    public User(String firstName, String key, String title) {
+        this.first_name = firstName;
         this.key = key;
-        this.inEvent = inEvent;
+        this.title = title;
     }
 
-    public String getName() {
-        return name;
+    public String getFirst_name() {
+        return first_name;
     }
 
     public String getKey() {
         return key;
     }
 
-    public boolean isInEvent() {
-        return inEvent;
+    public String getTitle() {
+        return title;
     }
 }
