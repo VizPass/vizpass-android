@@ -72,7 +72,7 @@ import java.util.Map;
  */
 public final class FaceTrackerActivity extends AppCompatActivity {
     private static final String TAG = "FaceTracker";
-    private static final int MAX_RECOGNITION_ATTEMPTS = 4;
+    private static final int MAX_RECOGNITION_ATTEMPTS = 3;
     private int mRecognitionAttempts;
 
 
@@ -508,8 +508,9 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                                                     }
                                                 }, 3000);
                                             }else{
-                                                mTextToSpeechObj.speak("Cannot recognize your face. No more attempts allowed!.", TextToSpeech.QUEUE_ADD, null, "recognition_error");
+                                                mTextToSpeechObj.speak("You have reached the maximum number of attempts. Please make sure you're registered for this event!", TextToSpeech.QUEUE_ADD, null, "recognition_error");
                                                 mPersonSeen.setValue(false);
+                                                mRecognitionAttempts = 0;
                                                 initWaitListener();
                                             }
 
@@ -543,9 +544,6 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                     mUser = new User(dataSnapshot.child("first_name").getValue().toString(),
                             dataSnapshot.getKey().toString(),
                             dataSnapshot.child("title").getValue().toString());
-
-
-
 
                     if(!(boolean) dataSnapshot.child("completed").getValue()){
                         mAttendanceList.child(candidate).child("completed").setValue(true);
